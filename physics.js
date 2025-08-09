@@ -2,7 +2,7 @@
 const DifficultySettings = {
     easy: {
         gravity: 0.35,
-        jumpForce: -8,
+        jumpForce: -6,
         obstacleSpeed: -2,
         obstacleGap: 180,
         spawnInterval: 180,
@@ -10,7 +10,7 @@ const DifficultySettings = {
     },
     normal: {
         gravity: 0.45,
-        jumpForce: -7,
+        jumpForce: -6,
         obstacleSpeed: -3,
         obstacleGap: 150,
         spawnInterval: 150,
