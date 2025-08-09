@@ -322,7 +322,7 @@ button:active {
     .game-overlay {
         align-items: flex-start;
         padding: 5px;
-        overflow: hidden;
+        overflow: visible;
     }
     
     .start-screen, .game-over-screen {
