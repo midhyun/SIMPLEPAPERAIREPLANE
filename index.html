@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>종이비행기 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>종이비행기 게임</h1>
+            <div class="score-display">
+                <span>점수: </span>
+                <span id="score">0</span>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            
+            <div class="game-overlay" id="gameOverlay">
+                <div class="start-screen" id="startScreen">
+                    <h2>종이비행기 게임</h2>
+                    <p>장애물을 피해 최대한 멀리 날아가세요.</p>
+                    
+                    <div class="difficulty-selector">
+                        <h3>난이도 선택</h3>
+                        <div class="difficulty-buttons">
+                            <button class="difficulty-btn" data-difficulty="easy">
+                                🟢 쉬움 (넓은 간격, 느린 속도)
+                            </button>
+                            <button class="difficulty-btn active" data-difficulty="normal">
+                                🟡 보통 (기본 설정)
+                            </button>
+                            <button class="difficulty-btn" data-difficulty="hard">
+                                🔴 어려움 (좁은 간격, 빠른 속도)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button id="startBtn">게임 시작</button>
+                </div>
+                
+                <div class="game-over-screen" id="gameOverScreen" style="display: none;">
+                    <h2>게임 오버!</h2>
+                    <p>난이도: <span id="playedDifficulty">보통</span></p>
+                    <p>최종 점수: <span id="finalScore">0</span></p>
+                    <p id="bestScoreDisplay" style="display: none;">🏆 새로운 최고 점수!</p>
+                    <button id="restartBtn">다시 시작</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-instructions">
+            <p>💡 <strong>조작법:</strong> 마우스 클릭 또는 화면 터치로 종이비행기를 위로 날려보세요!</p>
+        </div>
+    </div>
+
+    <!-- JavaScript 파일들 -->
+    <script src="physics.js"></script>
+    <script src="plane.js"></script>
+    <script src="obstacle.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+---
+globs: *.js
+description: 구체적인 구현 세부사항 및 코드 패턴
+---
+
+# 구현 세부사항 가이드
+
+## 캔버스 설정
+```javascript
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 600;
+```
+
+## 게임 루프 패턴
+```javascript
+function gameLoop() {
+    update();
+    render();
+    requestAnimationFrame(gameLoop);
+}
+```
+
+## 종이비행기 물리
+- **점프력**: -8 ~ -12 픽셀/프레임
+- **중력**: +0.5 픽셀/프레임²
+- **최대 낙하속도**: 10 픽셀/프레임
+- **회전**: 속도에 따른 각도 조절
+
+## 장애물 시스템
+- **생성 간격**: 120-180 프레임마다
+- **이동속도**: -3 픽셀/프레임
+- **간격**: 150-200 픽셀 높이
+- **제거 조건**: x < -100일 때
+
+## 충돌 감지 (AABB)
+```javascript
+function checkCollision(rect1, rect2) {
+    return rect1.x < rect2.x + rect2.width &&
+           rect1.x + rect1.width > rect2.x &&
+           rect1.y < rect2.y + rect2.height &&
+           rect1.y + rect1.height > rect2.y;
+}
+```
+
+## 색상 팔레트 (간단하고 보기 좋게)
+- 배경: `#87CEEB` (하늘색)
+- 종이비행기: `#FFFFFF` (흰색)
+- 장애물: `#228B22` (초록색)
+- 점수 텍스트: `#000000` (검은색)
+
+## 이벤트 처리
+```javascript
+// 마우스와 터치 모두 지원
+canvas.addEventListener('mousedown', jump);
+canvas.addEventListener('touchstart', jump);
+```
+
+## 점수 계산
+- 장애물 통과시 +1점
+- 거리 기반 보너스는 구현하지 않음 (시간 절약)
