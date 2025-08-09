@@ -20,19 +20,24 @@ class Game {
         // 게임 상태
         this.state = GameState.READY;
         this.score = 0;
+        this.stars = 0; // 별 점수
         this.bestScore = localStorage.getItem('paperPlane_bestScore') || 0;
         this.selectedDifficulty = 'normal';  // 기본 난이도
         
         // 게임 객체들
         this.plane = new Plane(150, this.canvas.height / 2);
-        this.obstacleManager = new ObstacleManager(this.canvas.width, this.canvas.height);
+        this.collectibleManager = new CollectibleManager();
+        this.obstacleManager = new ObstacleManager(this.canvas.width, this.canvas.height, this.collectibleManager);
         this.particleManager = new ParticleManager();
+        this.powerUpManager = new PowerUpManager(this.canvas.width, this.canvas.height);
+        this.backgroundManager = new BackgroundManager(this.canvas.width, this.canvas.height);
         
         // 사운드 매니저 초기화
         this.soundManager = initSoundManager();
         
         // UI 요소들
         this.scoreElement = document.getElementById('score');
+        this.starScoreElement = document.getElementById('starScore');
         this.finalScoreElement = document.getElementById('finalScore');
         this.playedDifficultyElement = document.getElementById('playedDifficulty');
         this.bestScoreDisplay = document.getElementById('bestScoreDisplay');
@@ -133,7 +138,9 @@ class Game {
         
         this.state = GameState.PLAYING;
         this.score = 0;
+        this.stars = 0;
         this.updateScore();
+        this.updateStarScore();
         
         // UI 숨기기
         this.gameOverlay.style.display = 'none';
@@ -142,7 +149,9 @@ class Game {
         // 게임 객체 리셋 (난이도 적용 후)
         this.plane.reset(150, this.canvas.height / 2);
         this.obstacleManager.reset();
+        this.collectibleManager.reset();
         this.particleManager.clear();
+        this.powerUpManager.reset();
         
         // 게임 시작 사운드
         playStartSound();
@@ -196,10 +205,22 @@ class Game {
     
     // 게임 업데이트
     update() {
+        this.backgroundManager.update(); // 배경은 항상 움직임
+
         if (this.state !== GameState.PLAYING) return;
         
         // 종이비행기 업데이트
         this.plane.update();
+
+        // 파워업 업데이트 및 수집
+        this.powerUpManager.update();
+        const collectedPowerUp = this.powerUpManager.checkCollision(this.plane);
+        if (collectedPowerUp) {
+            if (collectedPowerUp instanceof ShieldPowerUp) {
+                this.plane.activateShield();
+                playPowerUpSound();
+            }
+        }
         
         // 경계 체크 (위아래)
         if (this.plane.checkBounds(this.canvas.width, this.canvas.height)) {
@@ -209,17 +230,38 @@ class Game {
         
         // 장애물 업데이트
         this.obstacleManager.update();
+
+        // 별 업데이트 및 수집
+        this.collectibleManager.update();
+        const collectedStars = this.collectibleManager.checkCollisions(this.plane);
+        if (collectedStars > 0) {
+            this.stars += collectedStars;
+            this.updateStarScore();
+            playScoreSound(); // 별 수집 시 점수 사운드 재사용
+        }
         
         // 충돌 체크
-        if (this.obstacleManager.checkCollisions(this.plane)) {
-            // 충돌 파티클 효과
-            this.particleManager.createCollisionParticles(
-                this.plane.x + this.plane.width / 2,
-                this.plane.y + this.plane.height / 2
-            );
-            playGameOverSound();
-            this.gameOver();
-            return;
+        const collidedObstacle = this.obstacleManager.checkCollisions(this.plane);
+        if (collidedObstacle) {
+            if (this.plane.hasShield) {
+                this.plane.deactivateShield();
+                this.obstacleManager.destroyObstacle(collidedObstacle);
+                playShieldBreakSound();
+                // 보호막 파괴 파티클 효과
+                this.particleManager.createCollisionParticles(
+                    this.plane.x + this.plane.width / 2,
+                    this.plane.y + this.plane.height / 2
+                );
+            } else {
+                // 충돌 파티클 효과
+                this.particleManager.createCollisionParticles(
+                    this.plane.x + this.plane.width / 2,
+                    this.plane.y + this.plane.height / 2
+                );
+                playGameOverSound();
+                this.gameOver();
+                return;
+            }
         }
         
         // 점수 체크
@@ -255,12 +297,14 @@ class Game {
         this.ctx.fillStyle = '#87CEEB';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // 간단한 배경 (구름)
-        this.drawBackground();
+        // 새로운 배경 렌더링
+        this.backgroundManager.render(this.ctx);
         
         // 게임 객체들 렌더링
         if (this.state === GameState.PLAYING || this.state === GameState.GAME_OVER) {
             this.obstacleManager.render(this.ctx);
+            this.powerUpManager.render(this.ctx);
+            this.collectibleManager.render(this.ctx);
         }
         
         this.plane.render(this.ctx);
@@ -274,31 +318,7 @@ class Game {
         }
     }
     
-    // 배경 그리기
-    drawBackground() {
-        // 간단한 구름들
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        
-        // 구름 1
-        this.drawCloud(100, 80, 60);
-        this.drawCloud(300, 120, 40);
-        this.drawCloud(600, 100, 50);
-        
-        // 구름 2 (아래쪽)
-        this.drawCloud(200, 400, 45);
-        this.drawCloud(500, 450, 55);
-        this.drawCloud(700, 420, 35);
-    }
     
-    // 구름 그리기
-    drawCloud(x, y, size) {
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
-        this.ctx.arc(x + size * 0.3, y, size * 0.6, 0, Math.PI * 2);
-        this.ctx.arc(x + size * 0.6, y, size * 0.4, 0, Math.PI * 2);
-        this.ctx.arc(x + size * 0.3, y - size * 0.3, size * 0.5, 0, Math.PI * 2);
-        this.ctx.fill();
-    }
     
     // 디버그 정보 표시
     drawDebugInfo() {
@@ -315,10 +335,12 @@ class Game {
         this.ctx.fillText(`Plane: (${planeInfo.x}, ${planeInfo.y})`, 15, 40);
         this.ctx.fillText(`Velocity: ${planeInfo.velocity}`, 15, 55);
         this.ctx.fillText(`Rotation: ${planeInfo.rotation}`, 15, 70);
-        this.ctx.fillText(`Obstacles: ${this.obstacleManager.getObstacleCount()}`, 15, 85);
-        this.ctx.fillText(`Particles: ${this.particleManager.getParticleCount()}`, 15, 100);
-        this.ctx.fillText(`Score: ${this.score}`, 15, 115);
-        this.ctx.fillText(`Sound: ${this.soundManager?.isEnabled() ? 'ON' : 'OFF'}`, 15, 130);
+        this.ctx.fillText(`Shielded: ${planeInfo.shielded}`, 15, 85);
+        this.ctx.fillText(`Obstacles: ${this.obstacleManager.getObstacleCount()}`, 15, 100);
+        this.ctx.fillText(`Particles: ${this.particleManager.getParticleCount()}`, 15, 115);
+        this.ctx.fillText(`Score: ${this.score}`, 15, 130);
+        this.ctx.fillText(`Stars: ${this.stars}`, 15, 145);
+        this.ctx.fillText(`Sound: ${this.soundManager?.isEnabled() ? 'ON' : 'OFF'}`, 15, 160);
     }
     
     // 점수 업데이트
@@ -327,6 +349,11 @@ class Game {
         
         // 실시간 최고 점수 체크 및 업데이트
         this.checkAndUpdateBestScore();
+    }
+
+    // 별 점수 업데이트
+    updateStarScore() {
+        this.starScoreElement.textContent = this.stars;
     }
     
     // 실시간 최고 점수 체크 및 업데이트

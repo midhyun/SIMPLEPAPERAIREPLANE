@@ -325,12 +325,12 @@ button:active {
         overflow: visible;
     }
     
-    .start-screen, .game-over-screen {
+    /* .start-screen, .game-over-screen {
         margin: 5px auto;
         max-height: 90vh;
         overflow-y: visible;
         padding: 15px;
-    }
+    } */
     
     .difficulty-selector {
         margin: 8px 0;
@@ -351,9 +351,8 @@ button:active {
 @media (max-height: 600px) {
     .game-overlay {
         padding: 2px;
-        align-items: stretch;
     }
-    
+/*     
     .start-screen, .game-over-screen {
         margin: 0;
         max-height: 100vh;
@@ -364,7 +363,7 @@ button:active {
     .start-screen h2, .game-over-screen h2 {
         font-size: 1.5rem;
         margin-bottom: 10px;
-    }
+    } */
     
     .difficulty-selector {
         margin: 5px 0;

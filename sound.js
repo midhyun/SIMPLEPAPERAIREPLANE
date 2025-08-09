@@ -36,6 +36,10 @@ class SoundManager {
         
         // 시작 사운드
         this.sounds.start = this.createStartSound();
+
+        // 파워업 사운드
+        this.sounds.powerUp = this.createPowerUpSound();
+        this.sounds.shieldBreak = this.createShieldBreakSound();
     }
     
     // 점프 사운드 생성 (높은 톤의 짧은 소리)
@@ -75,6 +79,26 @@ class SoundManager {
             duration: 0.6,
             type: 'sine',
             volume: 0.4
+        };
+    }
+
+    // 파워업 획득 사운드
+    createPowerUpSound() {
+        return {
+            frequency: [523, 784, 1046], // C5, G5, C6
+            duration: 0.3,
+            type: 'triangle',
+            volume: 0.4
+        };
+    }
+
+    // 보호막 파괴 사운드
+    createShieldBreakSound() {
+        return {
+            frequency: [440, 220], // A4 -> A3
+            duration: 0.2,
+            type: 'sawtooth',
+            volume: 0.6
         };
     }
     
@@ -188,5 +212,13 @@ function playGameOverSound() {
 
 function playStartSound() {
     if (soundManager) soundManager.playSound('start');
+}
+
+function playPowerUpSound() {
+    if (soundManager) soundManager.playSound('powerUp');
+}
+
+function playShieldBreakSound() {
+    if (soundManager) soundManager.playSound('shieldBreak');
 }
 

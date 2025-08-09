@@ -130,10 +130,11 @@ class Obstacle {
 
 // 장애물 관리자 클래스
 class ObstacleManager {
-    constructor(canvasWidth, canvasHeight) {
+    constructor(canvasWidth, canvasHeight, collectibleManager) {
         this.obstacles = [];
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
+        this.collectibleManager = collectibleManager; // 수집품 관리자 참조
         this.spawnTimer = 0;
         this.updateSpawnInterval();    // 난이도별 생성 간격 설정
     }
@@ -168,6 +169,11 @@ class ObstacleManager {
     spawnObstacle() {
         const obstacle = new Obstacle(this.canvasWidth, this.canvasHeight);
         this.obstacles.push(obstacle);
+
+        // 장애물 생성 시, 간격 중앙에 별도 생성
+        const starX = obstacle.x + (obstacle.width / 2);
+        const starY = obstacle.topHeight + (obstacle.gap / 2);
+        this.collectibleManager.spawnStar(starX, starY, obstacle.speed);
     }
     
     // 모든 장애물 렌더링
@@ -179,7 +185,12 @@ class ObstacleManager {
     
     // 충돌 체크
     checkCollisions(plane) {
-        return this.obstacles.some(obstacle => obstacle.checkCollision(plane));
+        for (const obstacle of this.obstacles) {
+            if (obstacle.checkCollision(plane)) {
+                return obstacle; // 충돌한 장애물 반환
+            }
+        }
+        return null; // 충돌 없음
     }
     
     // 점수 체크
@@ -203,5 +214,13 @@ class ObstacleManager {
     // 장애물 개수 반환
     getObstacleCount() {
         return this.obstacles.length;
+    }
+
+    // 특정 장애물 제거
+    destroyObstacle(obstacleToDestroy) {
+        const index = this.obstacles.indexOf(obstacleToDestroy);
+        if (index > -1) {
+            this.obstacles.splice(index, 1);
+        }
     }
 }

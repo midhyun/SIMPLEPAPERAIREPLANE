@@ -7,6 +7,7 @@ class Plane {
         this.height = 30;
         this.velocity = 0;      // Y축 속도
         this.rotation = 0;      // 회전각
+        this.hasShield = false; // 보호막 상태
         
         // 렌더링 속성
         this.color = '#FFFFFF';
@@ -38,6 +39,11 @@ class Plane {
         // 회전 중심점으로 이동
         ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
         ctx.rotate(this.rotation);
+
+        // 보호막이 활성화된 경우 렌더링
+        if (this.hasShield) {
+            this.renderShield(ctx);
+        }
         
         // 종이비행기 그리기 (삼각형 모양)
         ctx.fillStyle = this.color;
@@ -59,6 +65,25 @@ class Plane {
         ctx.beginPath();
         ctx.moveTo(this.width / 2, 0);
         ctx.lineTo(-this.width / 4, 0);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+
+    // 보호막 렌더링
+    renderShield(ctx) {
+        ctx.save();
+        // 맥동 효과
+        const pulse = Math.sin(Date.now() / 150) * 0.2 + 0.5;
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = 'rgba(52, 152, 219, 0.5)';
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 3;
+        
+        const shieldRadius = Math.max(this.width, this.height) * 0.7;
+        ctx.beginPath();
+        ctx.arc(0, 0, shieldRadius, 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
         
         ctx.restore();
@@ -89,6 +114,7 @@ class Plane {
         this.y = y;
         this.velocity = 0;
         this.rotation = 0;
+        this.deactivateShield(); // 보호막 비활성화
     }
     
     // 디버그 정보 출력
@@ -97,7 +123,17 @@ class Plane {
             x: Math.round(this.x),
             y: Math.round(this.y),
             velocity: Math.round(this.velocity * 100) / 100,
-            rotation: Math.round(this.rotation * 180 / Math.PI) + '°'
+            rotation: Math.round(this.rotation * 180 / Math.PI) + '°',
+            shielded: this.hasShield
         };
+    }
+
+    // 보호막 활성화/비활성화
+    activateShield() {
+        this.hasShield = true;
+    }
+
+    deactivateShield() {
+        this.hasShield = false;
     }
 }
