@@ -14,6 +14,9 @@ class Game {
         this.canvas.width = 800;
         this.canvas.height = 600;
         
+        // 화면 크기에 따른 물리 설정 초기화
+        this.updatePhysicsForScreenSize();
+        
         // 게임 상태
         this.state = GameState.READY;
         this.score = 0;
@@ -52,6 +55,9 @@ class Game {
         
         // 게임 조작 이벤트
         this.setupControls();
+        
+        // 창 크기 변경 이벤트
+        this.setupResizeHandler();
         
         // 게임 루프 시작
         this.gameLoop();
@@ -121,6 +127,9 @@ class Game {
     
     // 게임 시작
     startGame() {
+        // 화면 크기에 따른 물리 설정 업데이트
+        this.updatePhysicsForScreenSize();
+        
         // 선택된 난이도 적용
         Physics.setDifficulty(this.selectedDifficulty);
         
@@ -140,6 +149,9 @@ class Game {
         // 게임 시작 사운드
         playStartSound();
         
+        // 최고 점수 표시 최신화
+        this.updateBestScoreDisplay();
+        
         const difficultyName = Physics.getDifficultySettings().name;
         console.log(`게임 시작! 난이도: ${difficultyName}`);
     }
@@ -150,6 +162,9 @@ class Game {
         this.startScreen.style.display = 'block';
         this.state = GameState.READY;
         
+        // 최고 점수 표시 업데이트
+        this.updateBestScoreDisplay();
+        
         console.log('게임 준비 상태로 전환');
     }
     
@@ -159,15 +174,18 @@ class Game {
         
         // 난이도별 최고 점수 키 생성
         const bestScoreKey = `paperPlane_bestScore_${this.selectedDifficulty}`;
-        const currentBest = localStorage.getItem(bestScoreKey) || 0;
+        const currentBest = parseInt(localStorage.getItem(bestScoreKey) || 0);
         
-        // 최고 점수 업데이트
+        // 최고 점수 업데이트 (최종 확인)
         let isNewBest = false;
         if (this.score > currentBest) {
             localStorage.setItem(bestScoreKey, this.score);
             isNewBest = true;
             console.log(`새로운 최고 점수! (${Physics.getDifficultySettings().name})`, this.score);
         }
+        
+        // 최고 점수 UI 최종 업데이트 (실시간 업데이트가 되지 않았을 경우를 대비)
+        this.updateBestScoreDisplay();
         
         // UI 표시
         this.finalScoreElement.textContent = this.score;
@@ -313,6 +331,22 @@ class Game {
     // 점수 업데이트
     updateScore() {
         this.scoreElement.textContent = this.score;
+        
+        // 실시간 최고 점수 체크 및 업데이트
+        this.checkAndUpdateBestScore();
+    }
+    
+    // 실시간 최고 점수 체크 및 업데이트
+    checkAndUpdateBestScore() {
+        const bestScoreKey = `paperPlane_bestScore_${this.selectedDifficulty}`;
+        const currentBest = parseInt(localStorage.getItem(bestScoreKey) || 0);
+        
+        // 현재 점수가 최고 점수를 넘었으면 즉시 업데이트
+        if (this.score > currentBest) {
+            localStorage.setItem(bestScoreKey, this.score);
+            this.updateBestScoreDisplay();
+            console.log(`실시간 최고 점수 갱신! ${currentBest} → ${this.score}`);
+        }
     }
     
     // 사운드 토글
@@ -327,13 +361,53 @@ class Game {
     // 최고 점수 표시 업데이트
     updateBestScoreDisplay() {
         const bestScoreKey = `paperPlane_bestScore_${this.selectedDifficulty}`;
-        const currentBest = localStorage.getItem(bestScoreKey) || 0;
+        const currentBest = parseInt(localStorage.getItem(bestScoreKey) || 0);
         this.currentBestScoreElement.textContent = currentBest;
+        console.log(`최고 점수 표시 업데이트: ${currentBest} (난이도: ${this.selectedDifficulty})`);
     }
     
     // 난이도 변경시 최고 점수 업데이트
     onDifficultyChanged() {
         this.updateBestScoreDisplay();
+    }
+    
+    // 화면 크기에 따른 물리 설정 업데이트
+    updatePhysicsForScreenSize() {
+        // 현재 캔버스의 실제 표시 크기 확인
+        const rect = this.canvas.getBoundingClientRect();
+        const displayWidth = rect.width;
+        const displayHeight = rect.height;
+        
+        // 물리 엔진에 화면 크기 정보 전달
+        Physics.setScreenType(displayWidth, displayHeight);
+        
+        console.log(`화면 크기 업데이트: ${displayWidth}x${displayHeight}`);
+    }
+    
+    // 창 크기 변경 이벤트 설정
+    setupResizeHandler() {
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            // 연속적인 리사이즈 이벤트 방지
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                this.updatePhysicsForScreenSize();
+                // 게임이 진행 중이 아닐 때만 난이도 재적용
+                if (this.state !== GameState.PLAYING) {
+                    Physics.setDifficulty(this.selectedDifficulty);
+                }
+            }, 100);
+        });
+        
+        // 화면 방향 변경 감지 (모바일)
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                this.updatePhysicsForScreenSize();
+                if (this.state !== GameState.PLAYING) {
+                    Physics.setDifficulty(this.selectedDifficulty);
+                }
+            }, 300);
+        });
     }
     
     // 게임 루프

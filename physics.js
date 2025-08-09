@@ -36,21 +36,63 @@ class Physics {
     
     // 현재 난이도 설정
     static currentDifficulty = 'easy';
+    static isMobile = false;
+    static screenMultiplier = 1.0;
+    
+    // 화면 크기에 따른 조정 설정
+    static setScreenType(canvasWidth, canvasHeight) {
+        const aspectRatio = canvasWidth / canvasHeight;
+        const isMobileSize = canvasWidth < 600 || canvasHeight < 500;
+        
+        Physics.isMobile = isMobileSize;
+        
+        // 모바일에서는 게임을 약간 쉽게 조정
+        if (isMobileSize) {
+            Physics.screenMultiplier = 0.85; // 15% 쉽게
+        } else {
+            Physics.screenMultiplier = 1.0;
+        }
+        
+        // 현재 난이도 재적용
+        Physics.setDifficulty(Physics.currentDifficulty);
+        
+        console.log(`화면 타입: ${isMobileSize ? '모바일' : 'PC'}, 배율: ${Physics.screenMultiplier}`);
+    }
     
     // 난이도 설정 적용
     static setDifficulty(difficulty) {
         if (DifficultySettings[difficulty]) {
             Physics.currentDifficulty = difficulty;
             const settings = DifficultySettings[difficulty];
-            Physics.GRAVITY = settings.gravity;
-            Physics.JUMP_FORCE = settings.jumpForce;
-            console.log(`난이도 설정: ${settings.name}`, settings);
+            
+            // 화면 크기에 따른 조정 적용
+            Physics.GRAVITY = settings.gravity * Physics.screenMultiplier;
+            Physics.JUMP_FORCE = settings.jumpForce * (1 + (1 - Physics.screenMultiplier) * 0.5);
+            
+            console.log(`난이도 설정: ${settings.name}`, {
+                원본: settings,
+                조정된값: {
+                    gravity: Physics.GRAVITY,
+                    jumpForce: Physics.JUMP_FORCE,
+                    screenMultiplier: Physics.screenMultiplier
+                }
+            });
         }
     }
     
-    // 현재 난이도 설정 반환
+    // 현재 난이도 설정 반환 (화면 크기 조정 적용)
     static getDifficultySettings() {
-        return DifficultySettings[Physics.currentDifficulty];
+        const settings = DifficultySettings[Physics.currentDifficulty];
+        
+        // 화면 크기에 따른 조정된 설정 반환
+        return {
+            ...settings,
+            gravity: settings.gravity * Physics.screenMultiplier,
+            jumpForce: settings.jumpForce * (1 + (1 - Physics.screenMultiplier) * 0.5),
+            obstacleSpeed: settings.obstacleSpeed * Physics.screenMultiplier,
+            obstacleGap: settings.obstacleGap * (1 + (1 - Physics.screenMultiplier) * 0.3),
+            spawnInterval: settings.spawnInterval * (1 + (1 - Physics.screenMultiplier) * 0.2)
+        };
     }
     
     // AABB 충돌 감지

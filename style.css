@@ -321,20 +321,68 @@ button:active {
 @media (max-height: 700px) {
     .game-overlay {
         align-items: flex-start;
-        padding: 10px;
+        padding: 5px;
+        overflow: hidden;
     }
     
     .start-screen, .game-over-screen {
-        margin-top: 10px;
-        max-height: 95vh;
+        margin: 5px auto;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 15px;
     }
     
     .difficulty-selector {
-        margin: 10px 0;
+        margin: 8px 0;
+        padding: 8px;
     }
     
     .difficulty-buttons {
-        gap: 6px;
+        gap: 4px;
+    }
+    
+    .difficulty-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+}
+
+/* 추가 모바일 최적화 */
+@media (max-height: 600px) {
+    .game-overlay {
+        padding: 2px;
+        align-items: stretch;
+    }
+    
+    .start-screen, .game-over-screen {
+        margin: 0;
+        max-height: 100vh;
+        border-radius: 0;
+        padding: 10px;
+    }
+    
+    .start-screen h2, .game-over-screen h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .difficulty-selector {
+        margin: 5px 0;
+        padding: 5px;
+    }
+    
+    .difficulty-selector h3 {
+        font-size: 1rem;
+        margin-bottom: 5px;
+    }
+    
+    .difficulty-btn {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+    
+    .difficulty-desc {
+        font-size: 0.7rem;
     }
 }
 
@@ -371,4 +419,33 @@ button:active {
 .game-over-screen {
     scrollbar-width: thin;
     scrollbar-color: rgba(52, 152, 219, 0.5) rgba(0, 0, 0, 0.1);
+}
+
+/* 모바일 터치 최적화 */
+@media (max-width: 768px) {
+    #gameCanvas {
+        touch-action: none; /* 터치 시 스크롤 방지 */
+        user-select: none;
+    }
+    
+    .difficulty-btn {
+        min-height: 44px; /* 최소 터치 타겟 크기 */
+        touch-action: manipulation;
+    }
+    
+    /* 모바일에서 게임 영역이 더 크게 보이도록 */
+    .game-container {
+        margin: 2px;
+        padding: 5px;
+    }
+    
+    /* 모바일에서 오버레이 최적화 */
+    .game-overlay {
+        background: rgba(0, 0, 0, 0.85); /* 더 어둡게 */
+    }
+    
+    .start-screen, .game-over-screen {
+        max-width: 98vw;
+        padding: 12px;
+    }
 }
