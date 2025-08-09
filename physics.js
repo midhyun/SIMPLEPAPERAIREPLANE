@@ -56,7 +56,6 @@ class Physics {
         // 현재 난이도 재적용
         Physics.setDifficulty(Physics.currentDifficulty);
         
-        console.log(`화면 타입: ${isMobileSize ? '모바일' : 'PC'}, 배율: ${Physics.screenMultiplier}`);
     }
     
     // 난이도 설정 적용
@@ -68,15 +67,7 @@ class Physics {
             // 화면 크기에 따른 조정 적용
             Physics.GRAVITY = settings.gravity * Physics.screenMultiplier;
             Physics.JUMP_FORCE = settings.jumpForce * (1 + (1 - Physics.screenMultiplier) * 0.5);
-            
-            console.log(`난이도 설정: ${settings.name}`, {
-                원본: settings,
-                조정된값: {
-                    gravity: Physics.GRAVITY,
-                    jumpForce: Physics.JUMP_FORCE,
-                    screenMultiplier: Physics.screenMultiplier
-                }
-            });
+
         }
     }
     

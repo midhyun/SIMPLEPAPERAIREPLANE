@@ -61,8 +61,7 @@ class Game {
         
         // 게임 루프 시작
         this.gameLoop();
-        
-        console.log('게임 초기화 완료!');
+    
     }
     
     // 난이도 선택 설정
@@ -80,7 +79,6 @@ class Game {
                 // 선택된 난이도 저장
                 this.selectedDifficulty = button.dataset.difficulty;
                 this.onDifficultyChanged();
-                console.log('난이도 선택:', this.selectedDifficulty);
             });
         });
     }
@@ -153,7 +151,6 @@ class Game {
         this.updateBestScoreDisplay();
         
         const difficultyName = Physics.getDifficultySettings().name;
-        console.log(`게임 시작! 난이도: ${difficultyName}`);
     }
     
     // 게임 재시작
@@ -165,7 +162,6 @@ class Game {
         // 최고 점수 표시 업데이트
         this.updateBestScoreDisplay();
         
-        console.log('게임 준비 상태로 전환');
     }
     
     // 게임 오버
@@ -181,7 +177,6 @@ class Game {
         if (this.score > currentBest) {
             localStorage.setItem(bestScoreKey, this.score);
             isNewBest = true;
-            console.log(`새로운 최고 점수! (${Physics.getDifficultySettings().name})`, this.score);
         }
         
         // 최고 점수 UI 최종 업데이트 (실시간 업데이트가 되지 않았을 경우를 대비)
@@ -197,7 +192,6 @@ class Game {
         this.gameOverlay.style.display = 'flex';
         document.body.classList.remove('playing');
         
-        console.log(`게임 오버! 점수: ${this.score} (난이도: ${Physics.getDifficultySettings().name})`);
     }
     
     // 게임 업데이트
@@ -241,7 +235,6 @@ class Game {
             );
             playScoreSound();
             
-            console.log('점수 획득!', this.score);
         }
         
         // 트레일 파티클 (종이비행기 뒤에)
@@ -345,7 +338,6 @@ class Game {
         if (this.score > currentBest) {
             localStorage.setItem(bestScoreKey, this.score);
             this.updateBestScoreDisplay();
-            console.log(`실시간 최고 점수 갱신! ${currentBest} → ${this.score}`);
         }
     }
     
@@ -363,7 +355,6 @@ class Game {
         const bestScoreKey = `paperPlane_bestScore_${this.selectedDifficulty}`;
         const currentBest = parseInt(localStorage.getItem(bestScoreKey) || 0);
         this.currentBestScoreElement.textContent = currentBest;
-        console.log(`최고 점수 표시 업데이트: ${currentBest} (난이도: ${this.selectedDifficulty})`);
     }
     
     // 난이도 변경시 최고 점수 업데이트
@@ -381,7 +372,6 @@ class Game {
         // 물리 엔진에 화면 크기 정보 전달
         Physics.setScreenType(displayWidth, displayHeight);
         
-        console.log(`화면 크기 업데이트: ${displayWidth}x${displayHeight}`);
     }
     
     // 창 크기 변경 이벤트 설정
@@ -420,6 +410,5 @@ class Game {
 
 // 게임 시작
 window.addEventListener('load', () => {
-    console.log('페이지 로드 완료, 게임 초기화 중...');
     new Game();
 });

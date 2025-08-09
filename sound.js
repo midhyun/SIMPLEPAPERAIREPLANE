@@ -16,9 +16,7 @@ class SoundManager {
     initAudioContext() {
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            console.log('Audio Context 초기화 완료');
         } catch (e) {
-            console.log('Web Audio API를 지원하지 않는 브라우저입니다.');
             this.enabled = false;
         }
     }
@@ -150,7 +148,6 @@ class SoundManager {
     // 사운드 활성화/비활성화
     toggleSound() {
         this.enabled = !this.enabled;
-        console.log('사운드:', this.enabled ? '활성화' : '비활성화');
         return this.enabled;
     }
     
