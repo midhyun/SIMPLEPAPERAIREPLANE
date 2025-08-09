@@ -23,12 +23,18 @@ class Game {
         // 게임 객체들
         this.plane = new Plane(150, this.canvas.height / 2);
         this.obstacleManager = new ObstacleManager(this.canvas.width, this.canvas.height);
+        this.particleManager = new ParticleManager();
+        
+        // 사운드 매니저 초기화
+        this.soundManager = initSoundManager();
         
         // UI 요소들
         this.scoreElement = document.getElementById('score');
         this.finalScoreElement = document.getElementById('finalScore');
         this.playedDifficultyElement = document.getElementById('playedDifficulty');
         this.bestScoreDisplay = document.getElementById('bestScoreDisplay');
+        this.currentBestScoreElement = document.getElementById('currentBestScore');
+        this.soundToggleBtn = document.getElementById('soundToggle');
         this.startScreen = document.getElementById('startScreen');
         this.gameOverScreen = document.getElementById('gameOverScreen');
         this.gameOverlay = document.getElementById('gameOverlay');
@@ -36,9 +42,13 @@ class Game {
         // 버튼 이벤트
         document.getElementById('startBtn').addEventListener('click', () => this.startGame());
         document.getElementById('restartBtn').addEventListener('click', () => this.restartGame());
+        this.soundToggleBtn.addEventListener('click', () => this.toggleSound());
         
         // 난이도 선택 이벤트
         this.setupDifficultySelector();
+        
+        // 최고 점수 초기화
+        this.updateBestScoreDisplay();
         
         // 게임 조작 이벤트
         this.setupControls();
@@ -63,6 +73,7 @@ class Game {
                 
                 // 선택된 난이도 저장
                 this.selectedDifficulty = button.dataset.difficulty;
+                this.onDifficultyChanged();
                 console.log('난이도 선택:', this.selectedDifficulty);
             });
         });
@@ -95,6 +106,12 @@ class Game {
     handleInput() {
         if (this.state === GameState.PLAYING) {
             this.plane.jump();
+            // 점프 파티클과 사운드 효과
+            this.particleManager.createJumpParticles(
+                this.plane.x + this.plane.width / 2,
+                this.plane.y + this.plane.height
+            );
+            playJumpSound();
         } else if (this.state === GameState.READY) {
             this.startGame();
         } else if (this.state === GameState.GAME_OVER) {
@@ -118,6 +135,10 @@ class Game {
         // 게임 객체 리셋 (난이도 적용 후)
         this.plane.reset(150, this.canvas.height / 2);
         this.obstacleManager.reset();
+        this.particleManager.clear();
+        
+        // 게임 시작 사운드
+        playStartSound();
         
         const difficultyName = Physics.getDifficultySettings().name;
         console.log(`게임 시작! 난이도: ${difficultyName}`);
@@ -179,6 +200,12 @@ class Game {
         
         // 충돌 체크
         if (this.obstacleManager.checkCollisions(this.plane)) {
+            // 충돌 파티클 효과
+            this.particleManager.createCollisionParticles(
+                this.plane.x + this.plane.width / 2,
+                this.plane.y + this.plane.height / 2
+            );
+            playGameOverSound();
             this.gameOver();
             return;
         }
@@ -188,8 +215,27 @@ class Game {
         if (scoreIncrease > 0) {
             this.score += scoreIncrease;
             this.updateScore();
+            
+            // 점수 파티클과 사운드 효과
+            this.particleManager.createScoreParticles(
+                this.plane.x + this.plane.width / 2,
+                this.plane.y + this.plane.height / 2
+            );
+            playScoreSound();
+            
             console.log('점수 획득!', this.score);
         }
+        
+        // 트레일 파티클 (종이비행기 뒤에)
+        if (Math.random() < 0.3) { // 30% 확률로 트레일 생성
+            this.particleManager.createTrailParticle(
+                this.plane.x,
+                this.plane.y + this.plane.height / 2
+            );
+        }
+        
+        // 파티클 시스템 업데이트
+        this.particleManager.update();
     }
     
     // 렌더링
@@ -207,6 +253,9 @@ class Game {
         }
         
         this.plane.render(this.ctx);
+        
+        // 파티클 렌더링
+        this.particleManager.render(this.ctx);
         
         // 디버그 정보 (개발 중에만)
         if (this.state === GameState.PLAYING) {
@@ -243,7 +292,7 @@ class Game {
     // 디버그 정보 표시
     drawDebugInfo() {
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        this.ctx.fillRect(10, 10, 220, 120);
+        this.ctx.fillRect(10, 10, 220, 140);
         
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.font = '12px Arial';
@@ -256,12 +305,35 @@ class Game {
         this.ctx.fillText(`Velocity: ${planeInfo.velocity}`, 15, 55);
         this.ctx.fillText(`Rotation: ${planeInfo.rotation}`, 15, 70);
         this.ctx.fillText(`Obstacles: ${this.obstacleManager.getObstacleCount()}`, 15, 85);
-        this.ctx.fillText(`Score: ${this.score}`, 15, 100);
+        this.ctx.fillText(`Particles: ${this.particleManager.getParticleCount()}`, 15, 100);
+        this.ctx.fillText(`Score: ${this.score}`, 15, 115);
+        this.ctx.fillText(`Sound: ${this.soundManager?.isEnabled() ? 'ON' : 'OFF'}`, 15, 130);
     }
     
     // 점수 업데이트
     updateScore() {
         this.scoreElement.textContent = this.score;
+    }
+    
+    // 사운드 토글
+    toggleSound() {
+        if (this.soundManager) {
+            const isEnabled = this.soundManager.toggleSound();
+            this.soundToggleBtn.textContent = isEnabled ? '🔊 사운드' : '🔇 사운드';
+            this.soundToggleBtn.classList.toggle('disabled', !isEnabled);
+        }
+    }
+    
+    // 최고 점수 표시 업데이트
+    updateBestScoreDisplay() {
+        const bestScoreKey = `paperPlane_bestScore_${this.selectedDifficulty}`;
+        const currentBest = localStorage.getItem(bestScoreKey) || 0;
+        this.currentBestScoreElement.textContent = currentBest;
+    }
+    
+    // 난이도 변경시 최고 점수 업데이트
+    onDifficultyChanged() {
+        this.updateBestScoreDisplay();
     }
     
     // 게임 루프

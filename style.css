@@ -202,7 +202,53 @@ button:active {
     background: rgba(255, 255, 255, 0.8);
     padding: 15px;
     border-radius: 10px;
-    max-width: 600px;
+    max-width: 100%;
+}
+
+.game-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.control-btn {
+    background: linear-gradient(45deg, #27ae60, #229954);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
+.control-btn:hover {
+    background: linear-gradient(45deg, #229954, #1e8449);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+.control-btn.disabled {
+    background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+    cursor: not-allowed;
+}
+
+.best-score-info {
+    font-size: 0.9rem;
+    color: #e74c3c;
+    font-weight: bold;
+    background: rgba(231, 76, 60, 0.1);
+    padding: 8px 12px;
+    border-radius: 15px;
+    border: 2px solid rgba(231, 76, 60, 0.2);
 }
 
 /* 반응형 디자인 */

@@ -54,11 +54,17 @@
         
         <div class="game-instructions">
             <p>💡 <strong>조작법:</strong> 마우스 클릭 또는 화면 터치로 종이비행기를 위로 날려보세요!</p>
+            <div class="game-controls">
+                <button id="soundToggle" class="control-btn">🔊 사운드</button>
+                <span id="bestScoreInfo" class="best-score-info">최고 점수: <span id="currentBestScore">0</span></span>
+            </div>
         </div>
     </div>
 
     <!-- JavaScript 파일들 -->
     <script src="physics.js"></script>
+    <script src="particle.js"></script>
+    <script src="sound.js"></script>
     <script src="plane.js"></script>
     <script src="obstacle.js"></script>
     <script src="game.js"></script>
